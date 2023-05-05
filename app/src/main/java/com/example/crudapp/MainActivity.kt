@@ -33,10 +33,6 @@ class MainActivity : AppCompatActivity() {
         positionEdt = findViewById(R.id.position_edit_text)
         button = findViewById(R.id.button)
 
-        val progressDialog = ProgressDialog(this)
-        progressDialog.setMessage("Loading...")
-        progressDialog.setCancelable(false)
-        progressDialog.show()
 
         button.setOnClickListener {
             registerUser()
