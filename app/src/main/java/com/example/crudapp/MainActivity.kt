@@ -1,6 +1,7 @@
 package com.example.crudapp
 
 import android.app.ProgressDialog
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -22,7 +23,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var ratingEdt: EditText
     private lateinit var positionEdt: EditText
     private lateinit var button: Button
-
+    private lateinit var buttonGet: Button
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -32,7 +33,11 @@ class MainActivity : AppCompatActivity() {
         ratingEdt = findViewById(R.id.rating_edit_text)
         positionEdt = findViewById(R.id.position_edit_text)
         button = findViewById(R.id.button)
-
+        buttonGet=findViewById(R.id.get_button)
+        buttonGet.setOnClickListener {
+            val intent= Intent(this, getRequest::class.java)
+            startActivity(intent)
+        }
 
         button.setOnClickListener {
             registerUser()
@@ -67,6 +72,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        Volley.newRequestQueue(this).add(stringRequest)
+        RequestHandler.getInstance(this).addToRequestQueue(stringRequest)
     }
 }

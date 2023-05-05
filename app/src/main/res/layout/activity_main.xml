@@ -86,11 +86,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/position_edit_text" />
 
-    <TextView
+    <Button
+        android:id="@+id/get_button"
         android:layout_width="match_parent"
+        android:layout_marginTop="36dp"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/button"
-        android:text="\n\n\nClick to View"
+        app:layout_constraintStart_toStartOf="parent"
+        android:text="Click for Reading"
         android:gravity="center"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
