@@ -1,11 +1,15 @@
 package com.example.crudapp
 
 import android.annotation.SuppressLint
-import android.os.AsyncTask
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -15,69 +19,89 @@ import java.net.URL
 
 class getRequest : AppCompatActivity() {
 
+    private lateinit var userDataTextView: TextView
+
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_getrequest)
 
-        GetUserDataTask().execute()
+        userDataTextView = findViewById(R.id.user_data)
+        userDataTextView.text = "GET REQUEST"
+
+        fetchData()
     }
 
-    @SuppressLint("StaticFieldLeak")
-    private inner class GetUserDataTask : AsyncTask<Void, Void, String>() {
-
-        @Deprecated("Deprecated in Java")
-        override fun doInBackground(vararg params: Void): String {
-            val url = URL("http://192.168.0.143/analysedDevelopers/v1/getuser.php")
-            val connection = url.openConnection() as HttpURLConnection
-            connection.requestMethod = "GET"
-
-            val responseCode = connection.responseCode
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                val inputStreamReader = InputStreamReader(connection.inputStream)
-                val bufferedReader = BufferedReader(inputStreamReader)
-                val response = StringBuilder()
-
-                var inputLine: String?
-                while (bufferedReader.readLine().also { inputLine = it } != null) {
-                    response.append(inputLine)
-                }
-                bufferedReader.close()
-
-                return response.toString()
-            } else {
-                return ""
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun fetchData() {
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                val result = executeRequest()
+                handleResponse(result)
+            } catch (e: Exception) {
+                Log.e("getRequest", "Error: ${e.message}")
             }
         }
+    }
 
-        @Deprecated("Deprecated in Java")
-        override fun onPostExecute(result: String?) {
-            super.onPostExecute(result)
+    private suspend fun executeRequest(): String {
+        val url = URL("http://192.168.0.143/analysedDevelopers/v1/getuser.php")
+        val connection = withContext(Dispatchers.IO) {
+            url.openConnection()
+        } as HttpURLConnection
+        connection.requestMethod = "GET"
+
+        val responseCode = connection.responseCode
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            val inputStreamReader = InputStreamReader(connection.inputStream)
+            val bufferedReader = BufferedReader(inputStreamReader)
+            val response = StringBuilder()
+
+            var inputLine: String?
+            while (withContext(Dispatchers.IO) {
+                    bufferedReader.readLine()
+                }.also { inputLine = it } != null) {
+                response.append(inputLine)
+            }
+            withContext(Dispatchers.IO) {
+                bufferedReader.close()
+            }
+
+            return response.toString()
+        } else {
+            return ""
+        }
+    }
+
+    private suspend fun handleResponse(result: String) {
+        withContext(Dispatchers.Main) {
+            Log.d("getRequest", "Response: $result")
+
             val userData = StringBuilder()
             try {
-                val jsonResponse = result?.let { JSONObject(it) }
-                val success = jsonResponse?.optInt("success")
-                if (success == 1) {
+                val jsonResponse = JSONObject(result)
+                val error = jsonResponse.getBoolean("error")
+                if (!error) {
                     val users = jsonResponse.getJSONArray("users")
                     for (i in 0 until users.length()) {
                         val user = users.getJSONObject(i)
                         val name = user.getString("name")
                         val realname = user.getString("realname")
-                        val rating = user.getInt("rating")
+                        val rating = user.getString("rating")
                         val position = user.getString("position")
                         userData.append("Name: $name\nReal Name: $realname\nRating: $rating\nPosition: $position\n\n")
-
                     }
+                    val userDataTextView = findViewById<TextView>(R.id.user_data)
+                    userDataTextView.text = userData.toString()
                 } else {
-                    val message = jsonResponse?.optString("message")
-                    // Handle error message
-                    Log.w("Uttu","$message")
+                    val message = jsonResponse.getString("message")
+                    Log.w("getRequest", "Error message: $message")
                 }
-            } catch (_: JSONException) {
-
+            } catch (e: JSONException) {
+                Log.e("getRequest", "JSON error: ${e.message}")
             }
-            val userDataTextView = findViewById<TextView>(R.id.user_data)
-            userDataTextView.text = userData.toString()
         }
-
     }
+
 }
+
