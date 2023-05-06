@@ -45,7 +45,7 @@ class getRequest : AppCompatActivity() {
     }
 
     private suspend fun executeRequest(): String {
-        val url = URL("http://192.168.0.143/analysedDevelopers/v1/getuser.php")
+        val url = URL("http://your_ip_address/folder_with_php_files/your_php_file_GET.php")
         val connection = withContext(Dispatchers.IO) {
             url.openConnection()
         } as HttpURLConnection
