@@ -13,7 +13,7 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
 
-const val ROOT_URL: String = "http://192.168.0.143/analysedDevelopers/v1/"
+const val ROOT_URL: String = "http://your_ip_address/folder_with_php_files/"
 const val URL_REGISTER: String = ROOT_URL + "registeruser.php"
 
 class MainActivity : AppCompatActivity() {
